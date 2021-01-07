@@ -1,4 +1,6 @@
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Scanner;
 
 /**
@@ -26,26 +28,49 @@ public class ECBEncryption {
 
         // Verschluesselung einer Nachricht
         if (userInput == 1) {
-            System.out.println("Geben Sie den zu verschlüsselnden Text ein:");
-            String inputText = sc.next(); // Einlesen des Textes
-            System.out.println("Geben Sie die Länger der Blöcke (r) an:");
-            int blockSize = sc.nextInt(); // Einlesen der laenge r
+            boolean invalidChar = true;
+            boolean invalidTextLength = true;
+            String inputText = null;
+            int blockSize = 0;
 
-            String encryptedText = encrypt(inputText, blockSize); // Verschluesseln der Nachricht
-            System.out.println(encryptedText); // Ausgabe auf der Konsole
+            while (invalidChar) {
+                System.out.println("Geben Sie den zu verschlüsselnden Text ein:");
+                inputText = sc.next(); // Einlesen des Textes
+                invalidChar = CheckForInvalidChar(inputText);
+            }
+            while (invalidTextLength) {
+                System.out.println("Geben Sie die Länger der Blöcke (r) an:");
+                blockSize = sc.nextInt(); // Einlesen der laenge r
+                invalidTextLength = CheckTextLength(inputText, blockSize);
+            }
+
+            String encryptedText = encrypt(inputText, blockSize);// Verschluesseln der Nachricht
+            System.out.println("Der verschlüsselte Text lautet: " + encryptedText); // Ausgabe auf der Konsole
         }
         // Entschluesselung einer Nachricht
         if (userInput == 2) {
-            System.out.println("Geben Sie den zu entschlüsselnden Text ein:");
-            String inputText = sc.next(); // Einlesen des Textes
-            System.out.println("Geben Sie die Länger der Blöcke (r) an:");
-            int blockSize = sc.nextInt(); // Einlesen der Laenge r
+            boolean invalidChar = true;
+            boolean invalidTextLength = true;
+            String inputText = null;
+            int blockSize = 0;
 
-            String decryptedText = decrypt(inputText, blockSize); // Entschluesseln der Nachricht
-            System.out.println(decryptedText); // Ausgabe auf der Konsole
+            while (invalidChar) {
+                System.out.println("Geben Sie den zu Entschlüsselnden Text ein:");
+                inputText = sc.next(); // Einlesen des Textes
+                invalidChar = CheckForInvalidChar(inputText);
+            }
+            while (invalidTextLength) {
+                System.out.println("Geben Sie die Länger der Blöcke (r) an:");
+                blockSize = sc.nextInt(); // Einlesen der laenge r
+                invalidTextLength = CheckTextLength(inputText, blockSize);
+            }
+
+            String decryptedText = decrypt(inputText, blockSize);// Verschluesseln der Nachricht
+            System.out.println("Der verschlüsselte Text lautet: " + decryptedText); // Ausgabe auf der Konsole
         }
         System.out.println("Danke für Ihre Nutzung und auf Wiedersehen!");
         sc.close(); // schliessen des Scanner Objekts
+
     }
 
     // ************************************************************
@@ -58,64 +83,125 @@ public class ECBEncryption {
     // Darstellung eines Textes als Binaercode
     //
 
+
+    // Returns Array of Bits from given char
     static char[] symbolToBits(char symbol) {
-        return null;
+        char[] charBitArray = (encryptionCodeMap.get(symbol)).toCharArray();  // Get Binary Code as String from HashMap | Convert it to char[]
+        return charBitArray;
     }
 
+    // Returns an flat Array of bits for each char from given Text
     static char[] textToBits(String text) {
-        return null;
+        char[] flatBitArray = new char[text.length() * symbolLenght()];
+        for (int i = 0; i < text.length(); i++) {
+            char[] charBitArray = symbolToBits(text.toUpperCase().charAt(i)); // Get Binary Code as char[]
+            for (int j = 0; j < charBitArray.length; j++) {
+                flatBitArray[i * symbolLenght() + j] = charBitArray[j]; // Add charBitArray at the end of bitArray
+            }
+        }
+        return flatBitArray;
     }
 
     //
     // Zerteilung in Bloecke der Laenge r
     //
 
-    static char[] firstN(char[] bits, int n) {
-        return null;
+    // Returns an array of the first bits from given array by length r
+    static char[] firstN(char[] bits, int r) {
+        char[] bitBlock = new char[r];
+        for (int i = 0; i < r; i++) {
+            bitBlock[i] = bits[i];
+        }
+        return bitBlock;
     }
 
-    static char[] lastN(char[] bits, int n) {
-        return null;
+    // Removes first bits by length r and return the rest
+    static char[] lastN(char[] bits, int r) {
+        char[] bitBlock = new char[bits.length - r];
+        for (int i = 0; i < bits.length - r; i++) {
+            bitBlock[i] = bits[i + r];
+        }
+        return bitBlock;
     }
 
+    // Returns an 2D Array of BitBlocks by given char[]
     static char[][] bitsToBlocks(char[] bits, int size) {
-        return null;
+        char[][] arrayOfBitBlocks = new char[(int) Math.floor(bits.length / size)][size]; // Init 2D Array [number of bit blocks] [length of bit Blocks]
+        char[] reducedBitsArray = bits; // Init bufferArray which contains the (bits Array - the firstN`s) for each loop
+        for (int i = 0; i < Math.floor(bits.length / size); i++) {
+            arrayOfBitBlocks[i] = firstN(reducedBitsArray, size); // Add first bits by length r from reducedBits to 2D Array
+            reducedBitsArray = lastN(reducedBitsArray, size); // Removes first bits by length r | Update reducedBits
+        }
+        return arrayOfBitBlocks;
     }
 
     //
     // Verschluesselung von Bloecken
     //
 
+    // Returns given 2D Array rightshifted
     static char[][] encryptBlocks(char[][] blocks) {
-        return null;
+        char[][] encryptedBlocks = new char[blocks.length][blocks[0].length]; // Init 2D Array [number of bit blocks] [length of bit Blocks]
+        for (int i = 0; i < blocks.length; i++) {
+            //encryptedBlocks[i] = shiftRight(blocks[i]); // Shift each Bit one position to their right | Add shifted BitBlock to 2D Array
+            encryptedBlocks[i] = shift(blocks[i], 5, false);
+        }
+        return encryptedBlocks;
     }
 
     //
     // Zusammenfuegen von Bloecken
     //
 
+    // Returns given 2DArray flatted
     static char[] blocksToBits(char[][] blocks) {
-        return null;
+        char[] flatBitArray = new char[blocks.length * blocks[0].length]; // Init flatted Array by (length of each block * number of blocks)
+        for (int i = 0; i < blocks.length; i++) {
+            for (int j = 0; j < blocks[0].length; j++) {
+                flatBitArray[i * blocks[0].length + j] = blocks[i][j]; // Add each bit of 2D Array in order to flattArray
+            }
+        }
+        return flatBitArray;
     }
 
     //
     // Umwandlung eines Binaercodes als Text
     //
 
+    // Returns char by given bitArray
     static char bitsToSymbol(char[] bits) {
-        return ' ';
+        String bitBlockString = new String(bits); // Convert bitArray into a String
+        return decryptionCodeMap.get(bitBlockString);
     }
 
+    // Returns an Array of Chars by given bit Array
     static char[] bitsToText(char[] bits, int size) {
-        return null;
+        char[] newCharArray = new char[(int) Math.ceil(bits.length / size)]; // Init array of chars by (length of bitArray / size)
+        char[] reducedBitsArray = bits; /// Init bufferArray which contains the (bits Array - the firstN`s) for each loop
+        for (int i = 0; i < Math.ceil(bits.length / size); i++) {
+            newCharArray[i] = bitsToSymbol(firstN(reducedBitsArray, size)); // Gets first bits by given size | Add char at the end of newCharArray
+            reducedBitsArray = lastN(reducedBitsArray, size); // Removes first bits by size | Update reducedBitsArray
+        }
+        return newCharArray;
     }
 
     //
     // Verschluesselung eines Textes
     //
 
-    static String encrypt(String text, int blockSize) {
-        return null;
+    // Returns encrypted String by given text and blocksize
+    static String encrypt(String text, int blockSize) { // Zuweisungs probleme in struktogramm
+        char[] textBits = textToBits(text); // Get flat Array of Bits by given text
+        // Convert flat bitArray to 2D BlockArray (length of each Block: size)| shift bits to their right | Add to encryptedArray
+        char[][] encryptedBitArray = encryptBlocks(bitsToBlocks(textBits, blockSize));
+        char[] flatBitArray = blocksToBits(encryptedBitArray);
+        char[] encodedTextBits = new char[textBits.length];
+        // Prevent losing rest bits by not matching blockSize
+        for (int i = 0; i < flatBitArray.length; i++) {
+            encodedTextBits[i] = flatBitArray[i];
+        }
+        // Convert 2DArray (length of each Block: size) to flat bitArray | Convert bits[] to char[] | Convert char[] to String | Add to encryptedString
+        return new String(bitsToText(encodedTextBits, symbolLenght()));
     }
 
     //
@@ -123,7 +209,12 @@ public class ECBEncryption {
     //
 
     static char[][] decryptBlocks(char[][] blocks) {
-        return null;
+        char[][] decryptedBlocks = new char[blocks.length][blocks[0].length]; // Init 2D Array [number of bit blocks] [length of bit Blocks]
+        for (int i = 0; i < blocks.length; i++) {
+            //decryptedBlocks[i] = shiftLeft(blocks[i]); // Shift each Bit one position to their left | Add shifted BitBlock to 2D Array
+            decryptedBlocks[i] = shift(blocks[i], 5, true);
+        }
+        return decryptedBlocks;
     }
 
     //
@@ -131,8 +222,72 @@ public class ECBEncryption {
     //
 
     static String decrypt(String text, int blockSize) {
-        return null;
+        char[] textBits = textToBits(text); // Get flat Array of Bits by given text
+
+        // Convert flat bitArray to 2D BlockArray (length of each Block: size)| shift bits to their left | Add to encryptedArray
+        char[][] decryptedBitArray = decryptBlocks(bitsToBlocks(textBits, blockSize));
+        char[] flatBitArray = blocksToBits(decryptedBitArray);
+        char[] decodedTextBits = new char[textBits.length];
+        // Prevent losing rest bits by not matching blockSize
+        for (int i = 0; i < flatBitArray.length; i++) {
+            decodedTextBits[i] = flatBitArray[i];
+        }
+        // Convert 2DArray (length of each Block: size) to flat bitArray | Convert bits[] to char[] | Convert char[] to String | Add to encryptedString
+        return new String(bitsToText(decodedTextBits, symbolLenght()));
     }
+
+    //
+    // AddOns
+    //
+
+    // Input Handling checks that blockSize is not greater than textBitLength
+    static Boolean CheckTextLength (String text, int blockSize) {
+        if (blockSize > text.length() * symbolLenght()) {
+            System.out.println("Die Block Länge ist zu lang!");
+            return true;
+        }
+        return false;
+    }
+
+    // Input Handling checks each Char in the string if its in the encodeMap
+    static Boolean CheckForInvalidChar(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (encryptionCodeMap.get(text.toUpperCase().charAt(i)) == null) {
+                System.out.println("Ungültiges Zeichen: " + "'" + text.charAt(i) + "'");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Own Shift Method
+    static char[] shift(char[] bitBlock,int blockSize, boolean decode) {
+        printCharArray(bitBlock);
+        char[] shiftedBitBlock = new char[bitBlock.length];
+
+            if (!decode) {
+                for (int j = 0; j < bitBlock.length; j++) {
+                    if (j < bitBlock.length - 1) {
+                        if (!decode) {
+                            shiftedBitBlock[j] = bitBlock[j + 1];
+                        } else {
+                            shiftedBitBlock[j + 1] = bitBlock[j];
+                        }
+                    } else {
+                        if (!decode) {
+                            shiftedBitBlock[j] = bitBlock[0];
+                        } else {
+                            shiftedBitBlock[0] = bitBlock[j];
+                        }
+                    }
+                }
+            }
+
+        printCharArray(shiftedBitBlock);
+        return shiftedBitBlock;
+    }
+
+
 
     // ************************************************************
     // HIER ENDET IHR QUELLCODE
