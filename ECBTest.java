@@ -140,15 +140,15 @@ public class ECBTest {
     @Test
     @DisplayName("Test der Methode bitsToText")
     void bitsToTextTest() {
-        char[] a1 = ECBEncryption.bitsToText(new char[]{'0','0','0','0','0','1','1','0','1','1','0','0','0','0','1'},5);
+        char[] a1 = ECBEncryption.bitsToText(new char[]{'0','0','0','0','0','1','1','0','1','1','0','0','0','0','1'});
         char[] e1 = {'A','B','C'};
         assertEquals(true, Arrays.equals(e1, a1), "Eingabe -> 000001101100001 Erwartete Ausgabe -> " + new String(e1) + " Erhaltene Ausgabe -> " + new String(a1));
 
-        char[] a2 = ECBEncryption.bitsToText(new char[]{'1','1','0','0','0','1','0','1','1','1','0','0','1','0','1','1','0','1','1','0','0','0','1','1','1'},5);
+        char[] a2 = ECBEncryption.bitsToText(new char[]{'1','1','0','0','0','1','0','1','1','1','0','0','1','0','1','1','0','1','1','0','0','0','1','1','1'});
         char[] e2 = {'H','J','K','L','O'};
         assertEquals(true, Arrays.equals(e2, a2), "Eingabe -> 1100010111001011011000111 Erwartete Ausgabe -> " + new String(e2) + " Erhaltene Ausgabe -> " + new String(a2));
 
-        char[] a3 = ECBEncryption.bitsToText(new char[]{},5);
+        char[] a3 = ECBEncryption.bitsToText(new char[]{});
         char[] e3 = {};
         assertEquals(true, Arrays.equals(e3, a3), "Eingabe -> '' Erwartete Ausgabe -> '' Erhaltene Ausgabe -> " + new String(a3));
     }
